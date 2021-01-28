@@ -14,13 +14,14 @@ IPAddress ip(192, 168, 1, 109);         // IP where this relay will be available
 // (port 80 is default for HTTP):
 EthernetServer server(80);
 GSM gsmAccess;
+GSM_SMS sms;
 GSMVoiceCall vcs;
 
 // Client variables
 char linebuf[80];
 int charcount = 0;
 // compressor monitor object does all the communication with arduino
-CompressorMonitor cm = CompressorMonitor(mac, ip, pin, remoteNumber);
+CompressorMonitor cm = CompressorMonitor(mac, ip, remoteNumber);
 
 void setup() {
 
@@ -37,6 +38,9 @@ void setup() {
         Serial.println("Not connected");
         delay(1000);
     }
+
+    cm.setVCS(vcs);
+    cm.setSMS(sms);
 
     // start the Ethernet connection and the server:
     Serial.println("Attempting to open server . . .");
@@ -101,7 +105,7 @@ void dashboardPage(EthernetClient & client) {
 
 void loop() {
 
-    cm.checkState(vcs);
+    cm.checkState();
 
     // listen for incoming clients
     EthernetClient client = server.available();

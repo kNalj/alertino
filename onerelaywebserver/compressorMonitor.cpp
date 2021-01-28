@@ -1,6 +1,6 @@
 #include "compressorMonitor.h"
 
-CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const String pin, const String phone)
+CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const String phone)
 	: relay1(1),
 	  relay2(2),
 	  runPin(7),
@@ -9,10 +9,8 @@ CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const 
 	  unitGoodPin(6)
 
 {
-	this->relay1State = "On";
-	char buffer[10];
-	pin.toCharArray(buffer, 10);
-	this->pin = buffer;
+	this->debug = false;
+
 	this->remoteNumber = phone;
 
 	// mac address  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
@@ -30,6 +28,11 @@ CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const 
 	this->highHeTState = this->getHeTemperature();
 	this->unitgoodState = this->getUnitGood();
 
+	this->lastCall = millis();
+	this->lastAlert = millis();
+	this->nextCallTimer = 900000;		// 15 minutes
+	this->nextAlertTimer = 180000;		// 3 minutes
+
 	this->prepareRelay();
 }
 
@@ -44,10 +47,6 @@ byte* CompressorMonitor::getMac() {
 
 IPAddress CompressorMonitor::getIP() {
 	return this->ip;
-}
-
-char* CompressorMonitor::getPin() {
-	return this->pin;
 }
 
 int CompressorMonitor::getRelay1() {
@@ -126,18 +125,13 @@ float CompressorMonitor::getVoltage() {
 	return this->getBatteryState() * (4.3 / 1023.0);
 }
 
-void CompressorMonitor::setSendAlert(boolean sendAlert) {
-	this->sendAlert = sendAlert;
+void CompressorMonitor::setVCS(GSMVoiceCall vcs) {
+	this->vcs = vcs;
 }
 
-bool CompressorMonitor::getSendAlert() {
-	return this->sendAlert;
+void CompressorMonitor::setSMS(GSM_SMS sms) {
+	this->sms = sms;
 }
-
-bool CompressorMonitor::shouldSendAlert() {
-	return this->sendAlert;
-}
-
 
 //////////////////////////////////////////////////////////
 ///////////////////// HELPER METHODS /////////////////////
@@ -157,19 +151,37 @@ void CompressorMonitor::prepareRelay() {
 }
 
 
-void CompressorMonitor::checkState(GSMVoiceCall vcs) {
+void CompressorMonitor::checkState() {
 	if (this->getCompRun() == 0) {
-		if (this->getSendAlert()) {
-			this->alertUser(vcs);
+		Serial.println("Check the time of last call.");
+		if (this->getMakeCall()) {
+			Serial.println("Trying to make a phone call.");
+			this->callUser();
 		}
-		this->setSendAlert(this->requestRestart());
+		else {
+			Serial.println("Check the time of the last msg");
+			if (this->getSendSMS()) {
+				Serial.println("Attempting to send a msg.");
+				this->sendSMS("This is an automated msg from Arduino monitor. Your system is still OFF. Next update in 3 minutes.");
+			}
+		}
+
+		Serial.println("Requesting a restart");
+		if (this->requestRestart()) {
+			Serial.println("Inform user of successful restart.");
+			this->sendSMS("Monitor was ready to be turned ON and Arduino monitor turned it ON.");
+		}
 	}
 }
 
 boolean CompressorMonitor::requestRestart() {
+	/*
+	* Helper method that calls the restart method
+	*/
+	Serial.println("Turning off.");
 	this->setRelay1(false);			// turn compressor off to make sure
 	delay(10000);					// wait 10 seconds
-
+	Serial.println("Calling a restart routine.");
 	return this->restartRoutine();	// try to re-start compressor
 }
 
@@ -177,32 +189,58 @@ boolean CompressorMonitor::restartRoutine() {
 	/*
 	* 
 	*	This method returns boolean because it is used to determine if the compressor should send alert msg.
-	* 
-		Check if the compressor is ready to be turned back ON
-			if it is:
-				Turn on monitor
-				return false
-			if it is not:
-				Seand a msg that it is not ready
-
-			return true
-	
 	*/
-
+	Serial.println("Check if ready to restart");
 	if (this->getUnitGood() == 1) {
+		Serial.println("It was ready. Start the compressor.");
 		this->setRelay1(true);
-		return false;
+		delay(10000);
+		if (this->getCompRun() == 1) {
+			return true;
+		}
 	}
 	else {
 		Serial.println("The compressor is not ready to be restarted");
 	}
-	return true;
+	return false;
 }
 
-void CompressorMonitor::alertUser(GSMVoiceCall vcs) {
+bool CompressorMonitor::getSendSMS() {
+	/*
+	* This one is responsible for determining if an alert should be sent.
+	*/
+	if (millis() - this->lastAlert >= this->nextAlertTimer) {
+		this->lastAlert = millis();
+		return true;
+	}
+	return false;
+}
+
+void CompressorMonitor::sendSMS(char * msg) {
+	/*
+	* Sends an SMS to a specified user number
+	*/
 	this->remoteNumber.toCharArray(this->charbuffer, 20);
-	if (vcs.voiceCall(charbuffer)) {
-		delay(10000);
-		vcs.hangCall();
+	this->sms.beginSMS(this->charbuffer);
+	this->sms.print(msg);
+	this->sms.endSMS();
+}
+
+bool CompressorMonitor::getMakeCall() {
+	/*
+	* This one is responsible for determining if a phone call should be made.
+	*/
+	if (millis() - this->lastCall >= this->nextCallTimer) {
+		this->lastCall = millis();
+		return true;
+	}
+	return false;
+}
+
+void CompressorMonitor::callUser() {
+	this->remoteNumber.toCharArray(this->charbuffer, 20);
+	if (this->vcs.voiceCall(charbuffer)) {
+		delay(20000);
+		this->vcs.hangCall();
 	}
 }

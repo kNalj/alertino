@@ -8,11 +8,10 @@
 
 class CompressorMonitor {
     public:
-        CompressorMonitor(const byte* mac, const IPAddress ip, const String pin, const String phone);
+        CompressorMonitor(const byte* mac, const IPAddress ip, const String phone);
 
         byte* getMac();
         IPAddress getIP();
-        char * getPin();
 
         int getRelay1();
         void setRelay1(const bool);
@@ -35,22 +34,26 @@ class CompressorMonitor {
         int getBatteryState();
         float getVoltage();
 
-        bool shouldSendAlert();
+        void setVCS(GSMVoiceCall vcs);
+        void setSMS(GSM_SMS sms);
+
 
         boolean requestRestart();      // calls the actual restart routine
 
-        bool getSendAlert();
-        void setSendAlert(bool sendAlert);
-        void alertUser(GSMVoiceCall vcs);           // method that makes a phone call and/or sends msg
+        bool getSendSMS();
+        void sendSMS(char* msg);
+        bool getMakeCall();
+        void callUser();           // method that makes a phone call and/or sends msg
 
-        void checkState(GSMVoiceCall vcs);
+        void checkState();
 
     private:
+        bool debug;
+
         // Ethernet stuff
         byte mac[6];                // Hols a MAC address for your controller below.
         IPAddress ip;               // The IP address will be dependent on your local network:
 
-        char * pin;
         String remoteNumber;
 
         String relay1State;
@@ -70,10 +73,16 @@ class CompressorMonitor {
         int battState;              // battery state
         float voltage;              // voltage
 
-        bool sendAlert;             // if arduino will send alert or not
+        unsigned long lastCall;
+        unsigned long nextCallTimer;
+        unsigned long lastAlert;
+        unsigned long nextAlertTimer;
 
         // GSM RELATED STUFF
         char charbuffer[20];
+        char txtmsg[50];
+        GSMVoiceCall vcs;
+        GSM_SMS sms;
 
         void prepareRelay();        // helper method that sets all pin modes
         bool restartRoutine();   // method that tries to restart the compressor
