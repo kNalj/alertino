@@ -8,44 +8,42 @@
 
 class CompressorMonitor {
     public:
-        CompressorMonitor(const byte* mac, const IPAddress ip, const String phone);
+        CompressorMonitor(const byte* mac, const IPAddress ip, const String phone);     // Constructor
+        ~CompressorMonitor();                                                           // Destructor
 
-        byte* getMac();
-        IPAddress getIP();
+        byte* getMac();                             // Get the mac of the arduino from compressor monitor object
+        IPAddress getIP();                          // Get the IP of the arduino from compressor monitor object
 
-        int getRelay1();
-        void setRelay1(const bool);
-        int getRelay2();
-        void setRelay2(const bool);
+        int getRelay1();                            // Get the value of the relay 1 from the compressor monitor object
+        void setRelay1(const bool);                 // Fer seting the stop/start pin of the compressor
+        int getRelay2();                            // Get the value of the relay 2 from the compressor monitor object
+        void setRelay2(const bool);                 // For seting the remote access pin of the compressor
 
-        void setRelay1State(const String state);
-        String getRelay1State();
+        int getRunPin();                            // Get the number of the compressor running pin
+        int getHePPin();                            // Get the number of the pressure pin
+        int getHeTPin();                            // Get the number of the temperature pin
+        int getUnitGoodPin();                       // Get the number of the UnitGood pin
 
-        int getRunPin();
-        int getHePPin();
-        int getHeTPin();
-        int getUnitGoodPin();
+        int getCompRun();                           // Get the status of the Compressor running pin
+        int getHePressure();                        // Get the pressure from the compressor
+        int getHeTemperature();                     // Get the temperature from the compressor
+        int getUnitGood();                          // Get the status of the UnitGood pin from the compressor
 
-        int getCompRun();
-        int getHePressure();
-        int getHeTemperature();
-        int getUnitGood();
+        int getBatteryState();                      // Gets the raw level of battery level
+        float getVoltage();                         // Get the current level of the battery as a float
 
-        int getBatteryState();
-        float getVoltage();
-
-        void setVCS(GSMVoiceCall vcs);
-        void setSMS(GSM_SMS sms);
+        void setVCS(GSMVoiceCall vcs);              // Set the voice call handling variable to the compressor monitor object
+        void setSMS(GSM_SMS sms);                   // Set the sms handling variable to the compressor monitor object
 
 
-        boolean requestRestart();      // calls the actual restart routine
+        boolean requestRestart();                   // calls the actual restart routine
 
-        bool getSendSMS();
-        void sendSMS(char* msg);
-        bool getMakeCall();
-        void callUser();           // method that makes a phone call and/or sends msg
+        bool getSendSMS();                          // Helper method to determine if new SMS needs to be sent
+        void sendSMS(char* msg);                    // Helper method for sending SMS from arduino
+        bool getMakeCall();                         // Helper method to determine if a call needs to be made
+        void callUser();                            // Helper method that makes a phone call
 
-        void checkState();
+        void checkState();                          // Helper method that checks if the compressor is ON, and calls methods to alert the user and restart the compressor
 
     private:
         bool debug;
@@ -87,7 +85,7 @@ class CompressorMonitor {
 
         void prepareRelay();            // helper method that sets all pin modes
         bool restartRoutine();          // method that tries to restart the compressor
-        void debugPrint(char * msg)     // helper method that prints something to serial if debug flag is true
+        void debugPrint(char* msg);     // helper method that prints something to serial if debug flag is true
 
 };
 

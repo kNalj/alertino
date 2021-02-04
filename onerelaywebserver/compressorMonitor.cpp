@@ -45,6 +45,15 @@ CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const 
 	this->prepareRelay();							// Helper methodd
 }
 
+CompressorMonitor::~CompressorMonitor() {
+	/*
+	* Destructor for the compressor monitor class
+	*/
+	free(this->charbuffer);
+	free(this->txtmsg);
+	free(this->mac);
+}
+
 
 //////////////////////////////////////////////////////////
 /////////////////// GETERS AND SETERS ////////////////////
@@ -94,14 +103,6 @@ void CompressorMonitor::setRelay2(bool state) {
 	{
 		digitalWrite(this->relay2, LOW);
 	}
-}
-
-void CompressorMonitor::setRelay1State(const String str) {
-	this->relay1State = str;
-}
-
-String CompressorMonitor::getRelay1State() {
-	return this->relay1State;
 }
 
 int CompressorMonitor::getRunPin() {
