@@ -49,9 +49,12 @@ CompressorMonitor::~CompressorMonitor() {
 	/*
 	* Destructor for the compressor monitor class
 	*/
-	free(this->charbuffer);
-	free(this->txtmsg);
-	free(this->mac);
+	if (this->callUser)
+		free(this->charbuffer);
+	if (this->txtmsg)
+		free(this->txtmsg);
+	if (this->mac)
+		free(this->mac);
 }
 
 
