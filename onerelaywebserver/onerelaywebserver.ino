@@ -27,7 +27,7 @@ void setup() {
     delay(1000);
     // Connect to the onboard SIM card
     Serial.println("Attempting to connect to SIM card . . .");      // DEBUG
-    if (gsmAccess.begin(PIN) == GSM_READY) {                        // Try to connect to card
+    if (gsmAccess.begin() == GSM_READY) {                        // Try to connect to card
         Serial.println("Connected");                                // DEBUG
     }
     else {
