@@ -1,8 +1,9 @@
 #include "compressorMonitor.h"
 #include <MKRGSM.h>
 
-#define PIN "2542"                          // PIN number to access the SIM card if there is one
+#define PIN ""                              // PIN number to access the SIM card if there is one
 String remoteNumber = "066488326132";       // number which will be called in case of a problem
+String name = "Fifth boiii";
 byte mac[] = {
     0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED      // If your ethernet shield has a sticker with MAC address, you should use that one
 };
@@ -18,31 +19,36 @@ GSMVoiceCall vcs;                           // Used to make call alerts
 char linebuf[80];
 int charcount = 0;
 // compressor monitor object does all the communication with arduino
-CompressorMonitor cm = CompressorMonitor(mac, ip, remoteNumber);        // Make an instance of compressor monitor class
+CompressorMonitor cm = CompressorMonitor(mac, ip, remoteNumber, name);      // Make an instance of compressor monitor class
 
 void setup() {
 
-    Serial.begin(9600);                     // Open serial communication at a baud rate of 9600
+    Serial.begin(9600);                                               // Open serial communication at a baud rate of 9600
 
     delay(1000);
-    // Connect to the onboard SIM card
-    Serial.println("Attempting to connect to SIM card . . .");      // DEBUG
-    if (gsmAccess.begin() == GSM_READY) {                        // Try to connect to card
-        Serial.println("Connected");                                // DEBUG
-    }
-    else {
-        Serial.println("Not connected");                            // DEBUG
-        delay(1000);                                                // Wait for 1 second
+
+    cm.setHasSIM(false);                                              // Change to true if you plan to use this arduino with sim card
+    
+    if (cm.getHasSIM()) {
+      // Connect to the onboard SIM card
+      Serial.println("Attempting to connect to SIM card . . .");      // DEBUG
+      if (gsmAccess.begin() == GSM_READY) {                           // Try to connect to card
+          Serial.println("Connected");                                // DEBUG
+      }
+      else {
+          Serial.println("Not connected");                            // DEBUG
+          delay(1000);                                                // Wait for 1 second
+      }
+  
+      cm.setVCS(vcs);                                                 // Pass the voice call handeler to the compressor monitor
+      cm.setSMS(sms);                                                 // Pass the SMS handeler to the compressor monitor
     }
 
-    cm.setVCS(vcs);                                                 // Pass the voice call handeler to the compressor monitor
-    cm.setSMS(sms);                                                 // Pass the SMS handeler to the compressor monitor
-
-    Serial.println("Attempting to open server . . .");              // DEBUG
-    Ethernet.begin(cm.getMac(), cm.getIP());                        // start the Ethernet connection
-    server.begin();                                                 // Start the server
-    Serial.print("server is at ");                                  // DEBUG
-    Serial.println(Ethernet.localIP());                             // DEBUG
+    Serial.println("Attempting to open server . . .");                // DEBUG
+    Ethernet.begin(cm.getMac(), cm.getIP());                          // start the Ethernet connection
+    server.begin();                                                   // Start the server
+    Serial.print("server is at ");                                    // DEBUG
+    Serial.println(Ethernet.localIP());                               // DEBUG
 }
 
 
@@ -60,50 +66,68 @@ void dashboardPage(EthernetClient & client) {
     client.println("<html>");
 
     client.println("<!DOCTYPE HTML><html><head>");
-    client.println("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"></head><body>");
-    client.println("<h3>Arduino Web Server - <a href=\"/\">Refresh</a></h3>");
+    client.println("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+    client.println("<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css'>");
+    client.println("</head><body>");
+    client.print("<h1 class='display-3'><b>");
+    client.print(cm.getName());
+    client.print("</b></h1>");
+    client.println("<h3><a href=\"#\" data-toggle=\"tooltip\" title=\"Click to refresh site\">Arduino Web Server</a></h3>");
 
-    // output the pin status
-    client.print("<br / >");
-    client.print("Compressor running: ");
-    client.print(cm.getCompRun());              // Grab and display if the compressor is ON or OFF
-    client.print("<br / >");
-
-    client.print("UnitGood: ");
-    client.print(cm.getUnitGood());             // Grab and display UnitGood flag, this indicates if the compressor is ready to be restarted
-    client.print("<br / >");
-
-    client.print("Helium High Temp: ");
-    client.print(cm.getHeTemperature());        // Currently this is not used, but the plan is that it will display the temperature
-    client.print("<br / >");
-
-    client.print("Helium High Pressure: ");
-    client.print(cm.getHePressure());           // Currently this is not used, but the plan is that it will display the pressure
-    client.print("<br / >");
-
-    client.print("BatteryVoltage");
-    client.print(" is ");
-    client.print(cm.getVoltage());              // This displays current level of the battery that powers the device
-    client.println("<br />");
-
-    // Generates buttons to control the 
-    // If relay is off, it shows the button to turn the output on
-    if (cm.getRelay1() == 0) {                                              // If compressor is ON, build and display a button to turn it OFF
-        client.println("<h4>Relay 1 - State: Off</h4>");
-        client.println("<a href=\"/relay1on\"><button>ON</button></a>");
+    client.print("<table class=\"w-25 table\"><thead><tr><th>Parameter</th><th>Status</th><th>Action</th></tr></thead><tbody>");
+    client.print("<tr><td>Compressor running</td><td>");
+    client.print(cm.getCompRun());
+    client.print("</td></tr><tr><td>Unit Good</td><td>");
+    client.print(cm.getUnitGood());
+    client.print("</td></tr><tr><td>Helium High Temp</td><td>");
+    client.print(cm.getHeTemperature());
+    client.print("</td></tr>");
+    client.print("<tr><td>Helium High Pressure</td><td>");
+    client.print(cm.getHePressure());
+    client.print("</td></tr><tr><td>Battery Voltage</td><td>");
+    client.print(cm.getVoltage());
+    client.print("</td></tr>");
+    
+    client.print("<tr><td>Compressor</td><td>");
+    if (cm.getRelay1()) {
+      client.print("ON");
+      client.print("</td><td><a href='/?relay=OFF'><button id=\"relay\" value=\"");
+      client.print("ON");
+      client.print("\"");
+      client.print("class=\"btn btn-danger\">Turn OFF</button></a></td></tr>");
     }
-    // If relay is on, it shows the button to turn the output off
-    else if (cm.getRelay1() == 1) {                                         // If compressor is OFF, build and display a button to turn it ON
-        client.println("<h4>Relay 1 - State: On</h4>");
-        client.println("<a href=\"/relay1off\"><button>OFF</button></a>");
+    else {
+      client.print("OFF");
+      client.print("</td><td><a href='/?relay=ON'><button id=\"relay\" value=\"");
+      client.print("OFF");
+      client.print("\"");
+      client.print("class=\"btn btn-success\">Turn ON</button></a></td></tr>");
     }
-    client.println("</body></html>");
+    client.print("<tr><td>Monitoring</td><td>");
+    if (cm.getMonitoring()) {
+      client.print("ON");
+      client.print("</td><td><a href='/?monitoring=OFF'><button id=\"monitoring\" value=\"");
+      client.print("ON");
+      client.print("\"");
+      client.print("class=\"btn btn-danger\">Turn OFF</button></a></td></tr>");
+    }
+    else {
+      client.print("OFF");
+      client.print("</td><td><a href='/?monitoring=ON'><button id=\"monitoring\" value=\"");
+      client.print("OFF");
+      client.print("\"");
+      client.print("class=\"btn btn-success\">Turn ON</button></a></td></tr></tbody></table>");
+    }
+    client.println("</body>");
+    client.println("</html>");
 }
 
 
 void loop() {
 
-    cm.checkState();                                        // Thats the function that will check if the compressor is function normally
+    if (cm.getMonitoring()) {
+        cm.checkState();                                        // Thats the function that will check if the compressor is functioning normally
+    }
 
     // listen for incoming clients
     EthernetClient client = server.available();
@@ -127,11 +151,17 @@ void loop() {
                     break;
                 }
                 if (c == '\n') {
-                    if (strstr(linebuf, "GET /relay1off") > 0) {
-                        cm.setRelay1(true);
+                    if (strstr(linebuf, "GET /?relay=OFF") > 0) {
+                      cm.setRelay1(true);
                     }
-                    else if (strstr(linebuf, "GET /relay1on") > 0) {
-                        cm.setRelay1(false);
+                    else if (strstr(linebuf, "GET /?relay=ON") > 0) {
+                      cm.setRelay1(false);
+                    }
+                    else if (strstr(linebuf, "GET /?monitoring=ON") > 0) {
+                      cm.setMonitoring(true);
+                    }
+                    else if (strstr(linebuf, "GET /?monitoring=OFF") > 0) {
+                      cm.setMonitoring(false);
                     }
                     // you're starting a new line
                     currentLineIsBlank = true;

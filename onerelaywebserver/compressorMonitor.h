@@ -8,13 +8,20 @@
 
 class CompressorMonitor {
     public:
-        CompressorMonitor(const byte* mac, const IPAddress ip, const String phone);     // Constructor
+        CompressorMonitor(const byte* mac, const IPAddress ip, const String phone, const String name);     // Constructor
         ~CompressorMonitor();                                                           // Destructor
 
         byte* getMac();                             // Get the mac of the arduino from compressor monitor object
         IPAddress getIP();                          // Get the IP of the arduino from compressor monitor object
+        String getName();
 
-        int getRelay1();                            // Get the value of the relay 1 from the compressor monitor object
+        bool getMonitoring();                       // Get the status of monitoring flag
+        void setMonitoring(const bool monitoring);        // Set status of monitoring flag
+
+        bool getHasSIM();
+        void setHasSIM(const bool hasSIM);
+
+        bool getRelay1();                           // Get the value of the relay 1 from the compressor monitor object
         void setRelay1(const bool);                 // Fer seting the stop/start pin of the compressor
         int getRelay2();                            // Get the value of the relay 2 from the compressor monitor object
         void setRelay2(const bool);                 // For seting the remote access pin of the compressor
@@ -48,14 +55,17 @@ class CompressorMonitor {
     private:
         bool debug;
         int attempts;
+        bool monitoring;
+        bool hasSIM;
+        String name;
 
         // Ethernet stuff
-        byte mac[6];                    // Hols a MAC address for your controller below.
+        byte mac[6];                    // Holds a MAC address for your controller below.
         IPAddress ip;                   // The IP address will be dependent on your local network:
 
         String remoteNumber;            // This is where the number to shich the alerts will be sent to is stored
 
-        String relay1State;
+        int relay1State;
         const int relay1;               // run/stop, default is run (relay is wired in normally closed option, if not actuated compressor tries to run, actuate to stop)
         const int relay2;               // local/remote, default state is remote, dont use if no switchover to local needed
 

@@ -1,6 +1,6 @@
 #include "compressorMonitor.h"
 
-CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const String phone)
+CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const String phone, const String name)
 	: relay1(1),
 	  relay2(2),
 	  runPin(7),
@@ -15,10 +15,14 @@ CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const 
 	* Consider remote commands via SMS
 	*/
 
-	this->debug = false;			// Use this if you want to print stuff for debug
-	this->attempts = 0;				// Sometimes the compressor UnitGood never goes to true, we use this to try to turn it on after 3 unsuccessful trie
+	this->debug = false;			  // Use this if you want to print stuff for debug
+	this->attempts = 0;				  // Sometimes the compressor UnitGood never goes to true, we use this to try to turn it on after 3 unsuccessful trie
+	this->monitoring = false;		// This is used to turn arduino monitoring on and off
+  this->hasSIM = false;       // This is used to skip gsm initialisation
+  this->relay1State = 0;
 	
 	this->remoteNumber = phone;		// This is the phone number that contacted when there is a problem
+  this->name = name;
 
 	// mac address  0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED
 	// Newer ethernet shields come with a sticker that has the MAC address on them
@@ -30,7 +34,7 @@ CompressorMonitor::CompressorMonitor(const byte* mac, const IPAddress ip, const 
 	this->mac[5] = mac[5];
 
 	// MUST CHANGE THIS TO READ IT FROM THE PARAMETER PASSED BY THE USER
-	this->ip = IPAddress(192, 168, 1, 109);
+	this->ip = ip;
 
 	this->comprunState = this->getCompRun();		// Read the initial state of the compressor Run pin
 	this->highHePState = this->getHePressure();		// Read the initial state of the pressure from compressor
@@ -49,7 +53,7 @@ CompressorMonitor::~CompressorMonitor() {
 	/*
 	* Destructor for the compressor monitor class
 	*/
-	if (this->callUser)
+	if (this->charbuffer)
 		free(this->charbuffer);
 	if (this->txtmsg)
 		free(this->txtmsg);
@@ -77,20 +81,54 @@ IPAddress CompressorMonitor::getIP() {
 	return this->ip;
 }
 
-int CompressorMonitor::getRelay1() {
+String CompressorMonitor::getName() {
+  return this->name;
+}
+
+bool CompressorMonitor::getMonitoring() {
+	/*
+	* Returns the current value of the monitoring flag. True if monitoring is ON.
+	*/
+	return this->monitoring;
+}
+
+void CompressorMonitor::setMonitoring(const bool monitoring) {
+	/*
+	* Sets the status of monitoring flag to whatever is passed.
+	*/
+	this->monitoring = monitoring;
+}
+
+bool CompressorMonitor::getHasSIM() {
+  /*
+  * Returns the current value of the monitoring flag. True if monitoring is ON.
+  */
+  return this->hasSIM;
+}
+
+void CompressorMonitor::setHasSIM(const bool hasSIM) {
+  /*
+  * Sets the status of monitoring flag to whatever is passed.
+  */
+  this->hasSIM = hasSIM;
+}
+
+bool CompressorMonitor::getRelay1() {
 	/*
 	* Returns the current state of relay1 (used to stop and run the compressor)
 	*/
-	return this->relay1;
+	return digitalRead(this->relay1) == LOW;
 }
 
 void CompressorMonitor::setRelay1(bool state) {
 	if (state) {
-		digitalWrite(this->relay1, HIGH);
+	  digitalWrite(this->relay1, HIGH);
+    this->relay1State = 0;
 	}
 	else
 	{
 		digitalWrite(this->relay1, LOW);
+    this->relay1State = 1;
 	}
 }
 
