@@ -3,7 +3,8 @@
 
 #define PIN ""                              // PIN number to access the SIM card if there is one
 String remoteNumber = "066488326132";       // number which will be called in case of a problem
-String name = "Fifth boiii";
+String name = "Fifth boiii";                // Name of the arduino, to be able to differentiate them when on their web servers
+bool hasSim = false;                        // Some arduinos dont have SIM cards in them, this is to avoid init of gsm stuff
 byte mac[] = {
     0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED      // If your ethernet shield has a sticker with MAC address, you should use that one
 };
@@ -27,7 +28,7 @@ void setup() {
 
     delay(1000);
 
-    cm.setHasSIM(false);                                              // Change to true if you plan to use this arduino with sim card
+  cm.setHasSIM(hasSim);                                               // Change to true if you plan to use this arduino with sim card
     
     if (cm.getHasSIM()) {
       // Connect to the onboard SIM card
