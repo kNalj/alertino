@@ -19,6 +19,7 @@ GSMVoiceCall vcs;                           // Used to make call alerts
 // Client variables
 char linebuf[80];
 int charcount = 0;
+bool redirect = false;
 // compressor monitor object does all the communication with arduino
 CompressorMonitor cm = CompressorMonitor(mac, ip, remoteNumber, name);      // Make an instance of compress or monitor class
 
@@ -26,7 +27,7 @@ void setup() {
 
     Serial.begin(9600);                                               // Open serial communication at a baud rate of 9600
 
-    delay(1000);
+    delay(2000);
 
   cm.setHasSIM(hasSim);                                               // Change to true if you plan to use this arduino with sim card
     
@@ -44,6 +45,9 @@ void setup() {
       cm.setVCS(vcs);                                                 // Pass the voice call handeler to the compressor monitor
       cm.setSMS(sms);                                                 // Pass the SMS handeler to the compressor monitor
     }
+    else {
+      Serial.println("No SIM card mode selected.");
+    }
 
     Serial.println("Attempting to open server . . .");                // DEBUG
     Ethernet.begin(cm.getMac(), cm.getIP());                          // start the Ethernet connection
@@ -54,7 +58,7 @@ void setup() {
 
 
 // It also print Temperature in C and F
-void dashboardPage(EthernetClient & client) {
+void dashboardPage(EthernetClient & client, bool shouldRedirect) {
     /*
     * A function that builds and displays a simple "web page" that has some information about the compressor and its status on it
     */
@@ -68,6 +72,9 @@ void dashboardPage(EthernetClient & client) {
 
     client.println("<!DOCTYPE HTML><html><head>");
     client.println("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+    if (shouldRedirect) {
+      client.println("<meta http-equiv=\"refresh\" content=\"1; URL=/\" />");
+    }
     client.println("<link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css'>");
     client.println("</head><body>");
     client.print("<h1 class='display-3'><b>");
@@ -129,6 +136,7 @@ void loop() {
     if (cm.getMonitoring()) {
         cm.checkState();                                        // Thats the function that will check if the compressor is functioning normally
     }
+    redirect = false;
 
     // listen for incoming clients
     EthernetClient client = server.available();
@@ -148,21 +156,27 @@ void loop() {
                 // character) and the line is blank, the http request has ended,
                 // so you can send a reply
                 if (c == '\n' && currentLineIsBlank) {
-                    dashboardPage(client);
+                    dashboardPage(client, redirect);
                     break;
                 }
                 if (c == '\n') {
                     if (strstr(linebuf, "GET /?relay=OFF") > 0) {
                       cm.setRelay1(true);
+                      redirect = true;
                     }
                     else if (strstr(linebuf, "GET /?relay=ON") > 0) {
                       cm.setRelay1(false);
+                      redirect = true;
+
                     }
                     else if (strstr(linebuf, "GET /?monitoring=ON") > 0) {
                       cm.setMonitoring(true);
+                      redirect = true;
+
                     }
                     else if (strstr(linebuf, "GET /?monitoring=OFF") > 0) {
                       cm.setMonitoring(false);
+                      redirect = true;
                     }
                     // you're starting a new line
                     currentLineIsBlank = true;
