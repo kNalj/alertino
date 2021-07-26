@@ -20,7 +20,7 @@ GSMVoiceCall vcs;                           // Used to make call alerts
 char linebuf[80];
 int charcount = 0;
 // compressor monitor object does all the communication with arduino
-CompressorMonitor cm = CompressorMonitor(mac, ip, remoteNumber, name);      // Make an instance of compressor monitor class
+CompressorMonitor cm = CompressorMonitor(mac, ip, remoteNumber, name);      // Make an instance of compress or monitor class
 
 void setup() {
 
