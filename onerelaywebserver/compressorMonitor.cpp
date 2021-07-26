@@ -237,23 +237,27 @@ void CompressorMonitor::checkState() {
 	* This is the only method that should be accessible outside of the object
 	*/
 	if (this->getCompRun() == 0) {
-		Serial.println("Check the time of last call.");
-		if (this->getMakeCall()) {
-			Serial.println("Trying to make a phone call.");
-			this->callUser();
-		}
-		else {
-			Serial.println("Check the time of the last msg");
-			if (this->getSendSMS()) {
-				Serial.println("Attempting to send a msg.");
-				this->sendSMS("This is an automated msg from Arduino monitor. Your system is still OFF. Next update in 3 minutes.");
-			}
-		}
+    if (this->getHasSIM()) {
+      Serial.println("Check the time of last call.");
+  		if (this->getMakeCall()) {
+  			Serial.println("Trying to make a phone call.");
+  			this->callUser();
+  		}
+  		else {
+  			Serial.println("Check the time of the last msg");
+  			if (this->getSendSMS()) {
+  				Serial.println("Attempting to send a msg.");
+  				this->sendSMS("This is an automated msg from Arduino monitor. Your system is still OFF. Next update in 3 minutes.");
+  			}
+  		}
+    }
 
 		Serial.println("Requesting a restart");
 		if (this->requestRestart()) {
-			Serial.println("Inform user of successful restart.");
-			this->sendSMS("Monitor was ready to be turned ON and Arduino monitor turned it ON.");
+      Serial.println("Inform user of successful restart.");
+      if (this->getHasSIM()) {
+        this->sendSMS("Monitor was ready to be turned ON and Arduino monitor turned it ON.");
+      }
 		}
 	}
 }
