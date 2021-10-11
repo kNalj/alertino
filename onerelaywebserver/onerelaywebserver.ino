@@ -1,14 +1,19 @@
 #include "compressorMonitor.h"
 #include <MKRGSM.h>
 
+//////////////// This is a list of fridges and their addresses ////////////////
+////////////////
+////////////////
+
 #define PIN ""                              // PIN number to access the SIM card if there is one
 String remoteNumber = "066488326132";       // number which will be called in case of a problem
-String name = "Fifth boiii";                // Name of the arduino, to be able to differentiate them when on their web servers
+String name = "Smurf 2";                // Name of the arduino, to be able to differentiate them when on their web servers
 bool hasSim = false;                        // Some arduinos dont have SIM cards in them, this is to avoid init of gsm stuff
 byte mac[] = {
-    0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED      // If your ethernet shield has a sticker with MAC address, you should use that one
+    0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xCD      // If your ethernet shield has a sticker with MAC address, you should use that one
 };
-IPAddress ip(192, 168, 1, 109);             // IP where this relay will be available
+//IPAddress ip(192, 168, 1, 188);
+IPAddress ip(10, 21, 42, 104);             // IP where this relay will be available
 
 
 EthernetServer server(80);                  // We need this to output the info 
@@ -50,7 +55,7 @@ void setup() {
     }
 
     Serial.println("Attempting to open server . . .");                // DEBUG
-    Ethernet.begin(cm.getMac(), cm.getIP());                          // start the Ethernet connection
+    Ethernet.begin(cm.getMac());                                      // start the Ethernet connection
     server.begin();                                                   // Start the server
     Serial.print("server is at ");                                    // DEBUG
     Serial.println(Ethernet.localIP());                               // DEBUG
