@@ -32,21 +32,34 @@ Here is a table containing that data for the arduinos connected so far. Try to u
 - Install Arduino IDE on a PC (It is important to get your hands on a laptop for this (i will explain later))
     - Find it on [THIS](https://www.arduino.cc/en/software) link (Arduino IDE, not the laptop ...)
 
-- Install necessery libraries in Arduino IDE
+- Install necessery libraries in Arduino IDE: Tools -> Manage Libraries
     - MKR GSM 14000
+    
+        ![MKRGSM](https://user-images.githubusercontent.com/19326347/136975294-8ce5b3b5-1849-4ea4-8def-667501c34947.png)
+
     - Ethernet
+    
+        ![Ethernet](https://user-images.githubusercontent.com/19326347/136975313-720ee6dc-ae5c-4a6f-9f57-0a97671b56ef.png)
+
 
 - Clone this repository on the machine you will be using to upload code to arduino (once again, its important that this is a laptop)
     - install Git BASH if you dont have it, find it on [THIS](https://gitforwindows.org/) link
-    - clone the repository by using the following command (make sure to change directory to where u want to clone the repo to)
-    - ```git clone https://git.ist.ac.at/finkgroup/alertino.git```
+    - open Git BASH
+    - clone the repository by using the following commands (make sure to change directory to where u want to clone the repo to)
+    ``` 
+    cd C:
+    git clone https://git.ist.ac.at/finkgroup/alertino.git
+    ```
+    - this will create a new folder called Alertino. The path to the directory will be "C:/alertino"
+    - you can move this directory if you wish to have it somewhere else
 
 - Open downloaded code in Arduino IDE and edit the following lines:
     - alertino.ino/line 10: update to reflect the name of the arduino
     - alertino.ino/line 13: update to reflect the MAC address of the arduino
 
-- Connect the arduino device to the ethernet wall socket and a laptop at the same time
+- Connect the arduino device to the ethernet wall socket, and the laptops USB port, at the same time
     - This is why you needed the latop
+    - Laptop does not need to be connected to the socket in the lab
 
 - Upload the code to the device
     - Hey, did you connect the device to the wall socket first ? This is important because the device needs to be connected to a socket in the lab so it will be assigned with the IP address that was reserved for it. If the device is not connected to a wall socket in the lab, a random IP address might be assigned to it. 
@@ -59,4 +72,4 @@ Here is a table containing that data for the arduinos connected so far. Try to u
 
 After succesfull upload, in serial monitor you should see a message saying: "server is at 10.21.64.###". This address should match the address reserved for the device in one of the earlier steps.
 
-To check that it is working, go to any PC inside the LAB (PC connected to a wall socket in the lap, not the laptop you are holding in your hands) and open internet browser. In the address field input the IP address. You should be able to see the arduinos web server.
+To check that it is working, go to any PC inside the LAB (PC connected to a wall socket in the lab, not the laptop you are holding in your hands) and open internet browser. In the address field input the IP address. You should be able to see the arduinos web server.
