@@ -40,6 +40,12 @@ Here is a table containing that data for the arduinos connected so far. Try to u
     - Ethernet
     
         ![Ethernet](https://user-images.githubusercontent.com/19326347/136975313-720ee6dc-ae5c-4a6f-9f57-0a97671b56ef.png)
+        
+- Install necessery board manager in Arduino IDE: Tools -> Board -> Boards Manager
+    - MKR GSM 1400
+        
+        ![boards](https://user-images.githubusercontent.com/13066652/137130728-25005c73-fc3b-4e63-8e0e-374e502e77fc.png)
+
 
 
 - Clone this repository on the machine you will be using to upload code to arduino (once again, its important that this is a laptop)
