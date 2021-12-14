@@ -10,11 +10,7 @@ Code for arduino pump monitors
 Here is a table containing that data for the arduinos connected so far. Try to use the next available MAC address if possible.
 | Name | Socket | MAC | IP |
 | ------ | ------ | ------ | ------ |
-| Rudolph | DB209 | DE:AD:BE:EF:FE:C9 | 10.21.64.85 |
-| Snow White | DB210 | DE:AD:BE:EF:FE:CA | 10.21.64.86 |
-| Gandalf | DA223 | DE:AD:BE:EF:FE:CB | 10.21.64.87 |
-| Smurf 1 | DE233 | DE:AD:BE:EF:FE:CC | 10.21.64.88 |
-| Smurf 2 | DE234 | DE:AD:BE:EF:FE:CD | 10.21.64.89 |
+
 
 ## Make a request to IST IT to reserve an IP address for the MAC address you assigned to your device
 - The IP address should be like this: 10.21.64.### where last three digits are any available address. The reason for this is because all devices that are located in the lab, and are connected to the network, will have such address. If address of a different type is reserved for the device, the device will be assigned a random address and you will not know which one is it, therefor you will not be able to connect to the device.
