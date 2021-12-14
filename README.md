@@ -1,6 +1,6 @@
 # Alertino
 
-Code for arduino pump monitors
+Code for arduino pump monitors. Arduino based device that connects to Cryomech pump, and monitors the device. In case that the pump goes offline, the monitor will continuously try to turn it back on, and in case that it has a SIM card it will call the phone number specified in the code.
 
 ## Information to gather before starting:
 - A name that will identify this monitor (I usually use the name of the fridge it is connected to)
